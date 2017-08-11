@@ -1,19 +1,27 @@
 # whoamI
 
-Tiny Go webserver that prints os information and HTTP request to output
+get whoami infomation for current http request
 
 ```sh
-$ docker run -d -P --name iamfoo emilevauge/whoami
-$ docker inspect --format '{{ .NetworkSettings.Ports }}'  iamfoo
-map[80/tcp:[{0.0.0.0 32769}]]
-$ curl "http://0.0.0.0:32769"
-Hostname :  6e0030e67d6a
-IP :  127.0.0.1
-IP :  ::1
-IP :  172.17.0.27
-IP :  fe80::42:acff:fe11:1b
+$ docker run --restart=unless-stopped -d -p 22222:80 opera443399/whoami
+
+
+$ curl "http://127.0.0.1:22222"
+Hostname: fa96fe68d4d9
+
+---- Http Request Headers ----
+
 GET / HTTP/1.1
-Host: 0.0.0.0:32769
-User-Agent: curl/7.35.0
+Host: 192.168.100.122:22222
+User-Agent: curl/7.19.7 (x86_64-redhat-linux-gnu) libcurl/7.19.7 NSS/3.21 Basic ECC zlib/1.2.3 libidn/1.18 libssh2/1.4.2
 Accept: */*
+
+
+---- Active Endpoint ----
+
+ / 
+ /api 
+ /health 
+ /test 
+
 ```

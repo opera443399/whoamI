@@ -1,15 +1,21 @@
+/*
+ * from: https://github.com/emilevauge/whoamI/blob/master/app.go
+ * howto: go get app.go; go run app.go; go install app.go; CGO_ENABLED=0 go build -a --installsuffix cgo --ldflags="-s" -o whoamI
+ * pc@2017/8/11
+ * simplify
+ *
+*/
+
 package main
 
 import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"log"
 	"sync"
 
-	"github.com/gorilla/websocket"
 	// "github.com/pkg/profile"
-	"log"
-	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -22,54 +28,36 @@ func init() {
 	flag.StringVar(&port, "port", "80", "give me a port number")
 }
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-}
-
 func main() {
 	// defer profile.Start().Stop()
 	flag.Parse()
-	http.HandleFunc("/echo", echoHandler)
-	http.HandleFunc("/bench", benchHandler)
+        // all
 	http.HandleFunc("/", whoamI)
+        // others
 	http.HandleFunc("/api", api)
 	http.HandleFunc("/health", healthHandler)
-	fmt.Println("Starting up on port " + port)
+	http.HandleFunc("/test", testHandler)
+	log.Println("Listening on port *:" + port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
-func printBinary(s []byte) {
-	fmt.Printf("Received b:")
-	for n := 0; n < len(s); n++ {
-		fmt.Printf("%d,", s[n])
-	}
-	fmt.Printf("\n")
+/*
+ * curl 127.0.0.1/test
+ *
+*/
+
+func testHandler(w http.ResponseWriter, r *http.Request) {
+        body := "[test] Hello World\n"
+        w.Header().Set("Connection", "keep-alive")
+        w.Header().Set("Content-Type", "text/plain")
+        fmt.Fprint(w, body)
 }
-func benchHandler(w http.ResponseWriter, r *http.Request) {
-	// body := "Hello World\n"
-	w.Header().Set("Connection", "keep-alive")
-	w.Header().Set("Content-Type", "text/plain")
-	// fmt.Fprint(w, body)
-}
-func echoHandler(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	for {
-		messageType, p, err := conn.ReadMessage()
-		if err != nil {
-			return
-		}
-		printBinary(p)
-		err = conn.WriteMessage(messageType, p)
-		if err != nil {
-			return
-		}
-	}
-}
+
+
+/*
+ * curl 127.0.0.1/whoami
+ *
+*/
 
 func whoamI(w http.ResponseWriter, req *http.Request) {
 	u, _ := url.Parse(req.URL.String())
@@ -81,55 +69,45 @@ func whoamI(w http.ResponseWriter, req *http.Request) {
 			time.Sleep(duration)
 		}
 	}
+
 	hostname, _ := os.Hostname()
 	fmt.Fprintln(w, "Hostname:", hostname)
-	ifaces, _ := net.Interfaces()
-	for _, i := range ifaces {
-		addrs, _ := i.Addrs()
-		// handle err
-		for _, addr := range addrs {
-			var ip net.IP
-			switch v := addr.(type) {
-			case *net.IPNet:
-				ip = v.IP
-			case *net.IPAddr:
-				ip = v.IP
-			}
-			fmt.Fprintln(w, "IP:", ip)
-		}
-	}
+	fmt.Fprintln(w, "\n---- Http Request Headers ----\n")
 	req.Write(w)
+
+	fmt.Fprintln(w, "\n---- Active Endpoint ----\n")
+	fmt.Fprintln(w, " / \n",
+                        "/api \n",
+                        "/health \n",
+                        "/test",
+                        "\n")
 }
+
+
+/*
+ * curl 127.0.0.1/api
+ *
+*/
 
 func api(w http.ResponseWriter, req *http.Request) {
 	hostname, _ := os.Hostname()
 	data := struct {
 		Hostname string      `json:"hostname,omitempty"`
-		IP       []string    `json:"ip,omitempty"`
 		Headers  http.Header `json:"headers,omitempty"`
 	}{
 		hostname,
-		[]string{},
 		req.Header,
 	}
 
-	ifaces, _ := net.Interfaces()
-	for _, i := range ifaces {
-		addrs, _ := i.Addrs()
-		// handle err
-		for _, addr := range addrs {
-			var ip net.IP
-			switch v := addr.(type) {
-			case *net.IPNet:
-				ip = v.IP
-			case *net.IPAddr:
-				ip = v.IP
-			}
-			data.IP = append(data.IP, ip.String())
-		}
-	}
 	json.NewEncoder(w).Encode(data)
 }
+
+
+/*
+ * curl 127.0.0.1/health
+ * curl 127.0.0.1/health -d '404'
+ *
+*/
 
 type healthState struct {
 	StatusCode int
@@ -145,15 +123,21 @@ func healthHandler(w http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(err.Error()))
+			log.Println(err.Error())
 		} else {
-			fmt.Printf("Update health check status code [%d]\n", statusCode)
 			mutexHealthState.Lock()
 			defer mutexHealthState.Unlock()
+
 			currentHealthState.StatusCode = statusCode
+			log.Println("Update 'health check' status code =", statusCode)
+			fmt.Fprintln(w, "Update health check status code: ", statusCode)
 		}
 	} else {
 		mutexHealthState.RLock()
 		defer mutexHealthState.RUnlock()
+
 		w.WriteHeader(currentHealthState.StatusCode)
+		log.Println("Current 'health check' status code =", currentHealthState.StatusCode)
+	        fmt.Fprintln(w, "Current health check status code: ", currentHealthState.StatusCode)
 	}
 }
