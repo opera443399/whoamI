@@ -2,7 +2,7 @@
  * from: https://github.com/emilevauge/whoamI/blob/master/app.go
  * howto: go get app.go; go run app.go; go install app.go; CGO_ENABLED=0 go build -a --installsuffix cgo --ldflags="-s" -o whoamI
  * pc@2017/8/11
- * simplify
+ * set default http connection from keep-alive to close
  *
 */
 
@@ -60,6 +60,8 @@ func testHandler(w http.ResponseWriter, r *http.Request) {
 */
 
 func whoamI(w http.ResponseWriter, req *http.Request) {
+        w.Header().Set("Connection", "close")
+
 	u, _ := url.Parse(req.URL.String())
 	queryParams := u.Query()
 	wait := queryParams.Get("wait")
