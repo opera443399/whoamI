@@ -27,10 +27,11 @@ Accept: */*
 
 ---- Active Endpoint ----
 
- / 
- /api 
- /health 
- /test 
+version: 0.3 
+    / 
+    /api 
+    /health 
+    /test 
 
 
 ```
