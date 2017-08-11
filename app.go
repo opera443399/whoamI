@@ -78,10 +78,11 @@ func whoamI(w http.ResponseWriter, req *http.Request) {
 	req.Write(w)
 
 	fmt.Fprintln(w, "\n---- Active Endpoint ----\n")
-	fmt.Fprintln(w, " / \n",
-                        "/api \n",
-                        "/health \n",
-                        "/test",
+	fmt.Fprintln(w, "version: 0.3 \n",
+                        "   / \n",
+                        "   /api \n",
+                        "   /health \n",
+                        "   /test",
                         "\n")
 }
 
