@@ -85,10 +85,10 @@ func index(w http.ResponseWriter, req *http.Request) {
 	req.Write(w)
 
 	fmt.Fprintln(w, "\n---- Active Endpoint ----\n")
-	fmt.Fprintln(w, "[howto] version: 0.5 \n",
+	fmt.Fprintln(w, "[howto] version: 0.6 \n",
                         "   curl 127.0.0.1/ \n",
                         "   curl 127.0.0.1/?wait=2s \n",
-                        "   curl 127.0.0.1/test",
+                        "   curl 127.0.0.1/test \n",
                         "   curl 127.0.0.1/api \n",
                         "   curl 127.0.0.1/health \n",
                         "   curl 127.0.0.1/health -d '302' \n",
