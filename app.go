@@ -7,7 +7,6 @@
  * CGO_ENABLED=0 go build -a --installsuffix cgo --ldflags="-s" -o whoamI
  *
  * pc@2017/8/14
- * delay the request by the given query parameter 'wait=[0-9][time unit]'
  *
 */
 
@@ -29,13 +28,13 @@ import (
 var port string
 
 func init() {
-	flag.StringVar(&port, "port", "80", "give me a port number")
+	flag.StringVar(&port, "port", "80", "listen the port as given.")
 }
 
 func main() {
 	flag.Parse()
         // url: index
-	http.HandleFunc("/", whoamI)
+	http.HandleFunc("/", index)
         // url: others
 	http.HandleFunc("/api", api)
 	http.HandleFunc("/health", healthHandler)
@@ -63,7 +62,7 @@ func testHandler(w http.ResponseWriter, r *http.Request) {
  *
 */
 
-func whoamI(w http.ResponseWriter, req *http.Request) {
+func index(w http.ResponseWriter, req *http.Request) {
         w.Header().Set("Connection", "close")
 
 	u, _ := url.Parse(req.URL.String())
@@ -86,12 +85,13 @@ func whoamI(w http.ResponseWriter, req *http.Request) {
 	req.Write(w)
 
 	fmt.Fprintln(w, "\n---- Active Endpoint ----\n")
-	fmt.Fprintln(w, "version: 0.4 \n",
-                        "   / \n",
-                        "   /?wait=2s \n",
-                        "   /api \n",
-                        "   /health \n",
-                        "   /test",
+	fmt.Fprintln(w, "[howto] version: 0.5 \n",
+                        "   curl 127.0.0.1/ \n",
+                        "   curl 127.0.0.1/?wait=2s \n",
+                        "   curl 127.0.0.1/test",
+                        "   curl 127.0.0.1/api \n",
+                        "   curl 127.0.0.1/health \n",
+                        "   curl 127.0.0.1/health -d '302' \n",
                         "\n")
 }
 
@@ -142,7 +142,7 @@ func healthHandler(w http.ResponseWriter, req *http.Request) {
 
 			currentHealthState.StatusCode = statusCode
 			log.Println("Update 'health check' status code =", statusCode)
-			fmt.Fprintln(w, "Update health check status code: ", statusCode)
+			fmt.Fprintln(w, statusCode)
 		}
 	} else {
 		mutexHealthState.RLock()
@@ -150,6 +150,6 @@ func healthHandler(w http.ResponseWriter, req *http.Request) {
 
 		w.WriteHeader(currentHealthState.StatusCode)
 		log.Println("Current 'health check' status code =", currentHealthState.StatusCode)
-	        fmt.Fprintln(w, "Current health check status code: ", currentHealthState.StatusCode)
+	        fmt.Fprintln(w, currentHealthState.StatusCode)
 	}
 }
