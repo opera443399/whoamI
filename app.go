@@ -1,8 +1,13 @@
 /*
  * from: https://github.com/emilevauge/whoamI/blob/master/app.go
- * howto: go get app.go; go run app.go; go install app.go; CGO_ENABLED=0 go build -a --installsuffix cgo --ldflags="-s" -o whoamI
- * pc@2017/8/11
- * set default http connection from keep-alive to close
+ * howto: 
+ * go get app.go
+ * go run app.go
+ * go install app.go
+ * CGO_ENABLED=0 go build -a --installsuffix cgo --ldflags="-s" -o whoamI
+ *
+ * pc@2017/8/14
+ * delay the request by the given query parameter 'wait=[0-9][time unit]'
  *
 */
 
@@ -15,7 +20,6 @@ import (
 	"log"
 	"sync"
 
-	// "github.com/pkg/profile"
 	"net/http"
 	"net/url"
 	"os"
@@ -29,11 +33,10 @@ func init() {
 }
 
 func main() {
-	// defer profile.Start().Stop()
 	flag.Parse()
-        // all
+        // url: index
 	http.HandleFunc("/", whoamI)
-        // others
+        // url: others
 	http.HandleFunc("/api", api)
 	http.HandleFunc("/health", healthHandler)
 	http.HandleFunc("/test", testHandler)
@@ -55,7 +58,8 @@ func testHandler(w http.ResponseWriter, r *http.Request) {
 
 
 /*
- * curl 127.0.0.1/whoami
+ * curl 127.0.0.1/
+ * curl 127.0.0.1/?wait=2s
  *
 */
 
@@ -68,8 +72,12 @@ func whoamI(w http.ResponseWriter, req *http.Request) {
 	if len(wait) > 0 {
 		duration, err := time.ParseDuration(wait)
 		if err == nil {
+                        log.Println("request will be delayed for :", duration)
 			time.Sleep(duration)
-		}
+		} else {
+			log.Println("[E] ", err.Error())
+			//fmt.Fprintln(w, "[E] ", err.Error())
+                }
 	}
 
 	hostname, _ := os.Hostname()
@@ -78,8 +86,9 @@ func whoamI(w http.ResponseWriter, req *http.Request) {
 	req.Write(w)
 
 	fmt.Fprintln(w, "\n---- Active Endpoint ----\n")
-	fmt.Fprintln(w, "version: 0.3 \n",
+	fmt.Fprintln(w, "version: 0.4 \n",
                         "   / \n",
+                        "   /?wait=2s \n",
                         "   /api \n",
                         "   /health \n",
                         "   /test",
