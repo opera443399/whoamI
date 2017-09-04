@@ -15,7 +15,7 @@ $ docker run --restart=unless-stopped -d -p 8888:80 opera443399/whoami
 
 #test
 $ curl "http://127.0.0.1:8888"
-Hostname: 7dc33e04b026
+Hostname: 5f27d36cf571
 
 ---- Http Request Headers ----
 
@@ -27,13 +27,13 @@ Accept: */*
 
 ---- Active Endpoint ----
 
-[howto] version: 0.7
+[howto] version: 0.8 
     curl 127.0.0.1/ 
     curl 127.0.0.1/?wait=2s 
     curl 127.0.0.1/test 
     curl 127.0.0.1/api 
     curl 127.0.0.1/health 
-    curl 127.0.0.1/health -d '302' 
+    curl 127.0.0.1/health -d '302'
  
 
 
