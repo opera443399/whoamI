@@ -1,6 +1,6 @@
 # whoamI
 
-get whoami infomation for current http request
+print `http request headers` and `hostname` for testing purposes only.
 
 ```sh
 #build
@@ -38,3 +38,12 @@ Accept: */*
 
 
 ```
+
+
+
+# git
+https://github.com/opera443399/whoamI
+
+
+# fork from:
+https://github.com/emilevauge/whoamI
