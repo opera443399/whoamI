@@ -27,7 +27,7 @@ print `http request headers` and `hostname` for testing purposes only.
 
         ---- Active Endpoint ----
 
-        [howto] version: 0.8 
+        [howto] version: 0.9 
             curl 127.0.0.1/ 
             curl 127.0.0.1/?wait=2s 
             curl 127.0.0.1/test 
